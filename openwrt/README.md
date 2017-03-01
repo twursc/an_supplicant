@@ -27,8 +27,8 @@ opkg update && opkg install python-codecs python-openssl
 ```
 vi start.sh
 ```
-将 python /***/edu_supplicant_py.py -c path>/dev/null &  
-这行中的`/***/edu_supplicant_py.py`更改为edu_supplicant_py.py所在的`路径`  
+将 python /\*\*\*/edu_supplicant_py.py -c path>/dev/null &  
+这行中的/\*\*\*/edu_supplicant_py.py 更改为edu_supplicant_py.py所在的`路径`  
 以及`path` 更改为`esp_config.json`所在的`路径`  
 
 例如
@@ -41,13 +41,13 @@ echo "edu_supplicant_py start!"
 运行
 `***代表目录`
 ```
-cd ***
+cd /***
 sh start.sh
 ```
 
 # 杀死进程
 ```
-cd ***
+cd /***
 sh stop.sh
 ```
 
