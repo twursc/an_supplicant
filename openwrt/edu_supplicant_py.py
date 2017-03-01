@@ -6,8 +6,8 @@ import struct
 import time
 import socket
 import json
-import sys
 import os
+import sys
 
 # translate ascii data to unsigned char data which is necessary e.g. 172 for 0xAC, return str
 def pack(data):
@@ -243,34 +243,49 @@ def auto_connect(mac, ip, user, password):
 
 # use linux shell to acquire local mac and ip, return [int, str, str]
 def search_local_mac_ip():
-    data = os.popen("ifconfig | grep -B1 'inet\ addr' | awk 'NF==5{print $5};NF==4{print $2}' | grep -v '\.1$' | grep -v 'addr:169\.254' | grep -B1 'addr'").read()   # linux shell ifconfig, grep, awk
-    if len(data) == 0:                            # if mac ip data not exist
-        status = 0
-        mac = ''
-        ip = ''
-    else:
-        status = 1
-        mac = data[:17]                           # mac index in str that linux shell return
-        ip = data[23:-1]                          # ip index in str that linux shell return
+    counter = 0                                       # counter times to limit
+    while counter < 20:                               # timeout limit = 20 * 0.5 = 10s
+        data = os.popen("ifconfig | grep -B1 'inet\ addr' | awk 'NF==5{print $5};NF==4{print $2}' | grep -v '\.1$' | grep -v 'addr:169\.254' | grep -B1 'addr'").read()     # shell script
+        if len(data) != 0:                            # if mac ip data not exist
+            status = 1
+            mac = data[:17]                           # mac index in str that linux shell return
+            ip = data[23:-1]                          # ip index in str that linux shell return
+            break
+        else:
+            counter += 1
+            time.sleep(0.5)
+    if counter == 20:                                 # time out
+            status = 0
+            mac = ''
+            ip = ''
     return [status, mac, ip]
 
 # function for using config file, return dict that contains 'ip' 'mac' 'user' 'password'
-def load_config():
+def load_config(abs_path):
     try:
-        with open('esp_config.json') as json_file:    # you can set config file name and path here
+        with open(abs_path) as json_file:    # you can set config file name and path here
             data = json.load(json_file)
     except:                                       # if read config file failed
-        print r'please check your config file'
+        print r'invaild input! please check the absolute path of your config file'
         sys.exit()
     else:
         return data
 
 # start
 def main():
-    data = load_config()
+    # run with argv
+    if len(sys.argv) > 1:
+        if sys.argv[1] == '-h':
+            print '-c with the absolute path of your config file e.g. /root/config.json'
+            sys.exit()
+        elif sys.argv[1] == '-c':
+            data = load_config(sys.argv[2])
+    else:
+        print 'invaild operation! run with -h can show more usages'
+        sys.exit()
     delay = data['delay']
     if delay == '1':
-        time.sleep(10)
+        time.sleep(20)
     macip_data = search_local_mac_ip()
     if macip_data[0] == 1:                        # auto acquire mac and ip
         mac = macip_data[1]
